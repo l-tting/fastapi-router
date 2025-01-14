@@ -40,3 +40,10 @@ class Stock(BaseModel):
     stock_count:int
     vendor_name:str
 
+class STK_Push(BaseModel):
+    merchant_request_id:str
+    checkout_request_id:str
+    transaction_id:str
+    amount:int
+    phone:str
+

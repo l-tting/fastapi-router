@@ -32,6 +32,9 @@ class Sale(Base):
     created_at = Column(DateTime, default=func.now())
     product = relationship("Product", back_populates='sales')
     user = relationship("User", back_populates='sales')
+    payment = relationship('Payment',back_populates='sale')
+
+
 
 class Vendor(Base):
     __tablename__ = 'vendors'
@@ -52,5 +55,23 @@ class Stock(Base):
     vendor = relationship('Vendor',back_populates='stock')
     
     
+class Payment(Base):
+    __tablename__ = 'payments'
+    payment_id = Column(String,primary_key=True)
+    sale_id = Column(Integer,ForeignKey('sales.id'),nullable=False)
+    amount = Column(Integer,nullable=False)
+    mode = Column(String,nullable=False)
+    transaction_code = Column(String,nullable=False)
+    created_at = Column(DateTime,server_default=func.now())
+    sale = relationship('Sale',back_populates='payment')
 
+class STK_Push(Base):
+    __tablename__= 'stk_push'
+    stk_id = Column(Integer,primary_key=True)
+    merchant_request_id = Column(String,nullable=False)
+    checkout_request_id = Column(String,nullable=False)
+    amount = Column(Integer,nullable=False)
+    phone = Column(String,nullable=False)
+    transaction_id = Column(String,nullable=False,unique=True)
+    created_at = Column(DateTime,server_default=func.now())
 
