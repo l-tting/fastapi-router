@@ -28,5 +28,3 @@ def index():
     return {"message": "Welcome to MyDuka FASTAPI"}
 
 
-print(mpesa.generate_access_token())
-# print(mpesa.stk_push_sender)

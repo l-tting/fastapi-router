@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func,Enum
 from sqlalchemy.orm import relationship
 from database import Base
+import enum
 # from database import Base
 
 class Product(Base):
@@ -15,8 +16,7 @@ class Product(Base):
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
     phone_number = Column(String, nullable=False)
     password = Column(String,nullable=False)
@@ -65,6 +65,16 @@ class Payment(Base):
     created_at = Column(DateTime,server_default=func.now())
     sale = relationship('Sale',back_populates='payment')
 
+
+# The enum module is used to define an enumeration of possible values for a column
+class MPESAStatus(str, enum.Enum):
+    PENDING = 'pending'
+    COMPLETED = 'completed'
+    FAILED = 'failed'
+    CANCELLED = 'cancelled'
+    TIMEOUT = 'timeout'
+
+
 class STK_Push(Base):
     __tablename__= 'stk_push'
     stk_id = Column(Integer,primary_key=True)
@@ -72,6 +82,11 @@ class STK_Push(Base):
     checkout_request_id = Column(String,nullable=False)
     amount = Column(Integer,nullable=False)
     phone = Column(String,nullable=False)
-    transaction_id = Column(String,nullable=False,unique=True)
+    status = Column(Enum(MPESAStatus, name='mpesa_status_enum'),
+        default=MPESAStatus.PENDING,
+        nullable=False
+    )
+    result_code = Column(String,nullable=True)
+    result_desc = Column(String,nullable=True)
     created_at = Column(DateTime,server_default=func.now())
 

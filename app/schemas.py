@@ -12,8 +12,7 @@ class Sale(BaseModel):
     quantity: int
 
 class User(BaseModel):
-    first_name:str
-    last_name:str
+    full_name:str
     email:str
     phone_number:str
     password:str
@@ -40,10 +39,27 @@ class Stock(BaseModel):
     stock_count:int
     vendor_name:str
 
-class STK_Push(BaseModel):
+class STK_PushResponse(BaseModel):
     merchant_request_id:str
     checkout_request_id:str
-    transaction_id:str
-    amount:int
-    phone:str
+    status:str
+    response_code:str='0'
+    response_desc:str='Success. Request accepted for processing'
+    customer_message: str = "Please check your phone to complete the payment" 
 
+
+class MpesaCallback(BaseModel):
+    merchant_request_id: str
+    checkout_request_id: str
+    result_code: str
+    result_desc: str
+
+
+class STK_PushCreate(BaseModel):
+    phone_number:str
+    amount: float
+
+class STKPushCheckResponse(BaseModel):
+    success: bool
+    message: str
+    status: Optional[str] = None
