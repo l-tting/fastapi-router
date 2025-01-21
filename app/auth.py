@@ -19,11 +19,11 @@ def check_user(email):
     user = db.query(User).filter(User.email==email).first()
     return user
 
-def create_access_token(data:dict,expries_delta:timedelta | None=None):
+def create_access_token(data:dict,expires_delta:timedelta | None=None):
     # create copy to avoid modifying original data
     to_encode = data.copy()
-    if expries_delta:
-        expires = datetime.now(timezone.utc) + expries_delta
+    if expires_delta:
+        expires = datetime.now(timezone.utc) + expires_delta
     else:
         expires = datetime.now(timezone.utc) + ACCESS_TOKEN_EXPIRY_TIME
     to_encode.update({"exp":expires})
