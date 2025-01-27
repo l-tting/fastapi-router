@@ -17,6 +17,7 @@ pwd_context = CryptContext(schemes=['bcrypt'],deprecated="auto")
 def check_user(email):
     db = sessionlocal()
     user = db.query(User).filter(User.email==email).first()
+
     return user
 
 def create_access_token(data:dict,expires_delta:timedelta | None=None):
@@ -80,6 +81,7 @@ async def get_current_user(access_token: str = Depends(get_token_auth_heaaders))
     if not user:
         raise HTTPException(status_code=401, detail="User does not exist")
     
+    print("User",user)
     return user
 
 def verify_refresh_token(refresh_token:str=Depends(get_refresh_token)):

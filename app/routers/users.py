@@ -9,12 +9,14 @@ from datetime import timedelta
 router = APIRouter()
 
 @router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED)
+
 def register_user(user: schemas.User, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.email == user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
     hashed_password = generate_password_hash(user.password)
     new_user = models.User(
+        company_id = user.company_id,
         full_name=user.full_name,
        
         email=user.email,
