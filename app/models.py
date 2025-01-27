@@ -4,46 +4,69 @@ from database import Base
 import enum
 # from database import Base
 
+class Company(Base):
+    __tablename__ = 'companies'
+    id = Column(Integer,primary_key=True,index=True)
+    company_name = Column(String,nullable=False)
+    phone_number = Column(Integer,nullable=False)
+    email = Column(String,unique=True,nullable=False)
+    location = Column(String,nullable=False)
+    user = relationship('User', back_populates='company')
+    subscription = relationship('Subscription',back_populates='company')
+    product = relationship('Product',back_populates='company')
+    sales = relationship('Sale',back_populates='company')
+    vendor = relationship("Vendor",back_populates='company')
+
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer,ForeignKey('companies.id'),nullable=False)
+    full_name = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
+    phone_number = Column(String, nullable=False)
+    password = Column(String,nullable=False)
+    role = Column(String,nullable=False,default='users')
+    company = relationship("Company",back_populates='user')
+
+
+
 class Product(Base):
     __tablename__ = 'products'
     id = Column(Integer, primary_key=True)
+    company_id =Column(Integer,ForeignKey('companies.id'),nullable=False)
     name = Column(String, nullable=False)
     buying_price = Column(Integer, nullable=False)
     selling_price = Column(Integer, nullable=False)
     stock_quantity = Column(Integer, nullable=False)
     sales = relationship("Sale", back_populates='product')
+    company = relationship("Company",back_populates='product')
+    
 
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    full_name = Column(String, nullable=False)
-    email = Column(String, nullable=False, unique=True)
-    phone_number = Column(String, nullable=False)
-    password = Column(String,nullable=False)
-    role = Column(String,nullable=False,default='user')
-    sales = relationship("Sale", back_populates='user')
 
 class Sale(Base):
     __tablename__ = 'sales'
     id = Column(Integer, primary_key=True)
     pid = Column(Integer, ForeignKey('products.id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False)
     quantity = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=func.now())
     product = relationship("Product", back_populates='sales')
-    user = relationship("User", back_populates='sales')
     payment = relationship('Payment',back_populates='sale')
-
+    company = relationship("Company",back_populates='sales')
 
 
 class Vendor(Base):
     __tablename__ = 'vendors'
     id = Column(Integer,primary_key=True)
+    company_id = Column(Integer,ForeignKey('companies.id'),nullable=False)
     vendor_name = Column(String,nullable=False,unique=True)
     phone_number = Column(String,nullable=False,unique=True)
     email = Column(String,nullable = False, unique=True)
     address = Column(String,nullable=False)
     stock = relationship("Stock",back_populates='vendor')
+    company = relationship('Company',back_populates='vendor')
+
 
 class Stock(Base):
     __tablename__ = 'stock'
@@ -90,3 +113,22 @@ class STK_Push(Base):
     result_desc = Column(String,nullable=True)
     created_at = Column(DateTime,server_default=func.now())
 
+
+class Tier(Base):
+    __tablename__ = 'tiers'
+    id = Column(Integer,primary_key=True)
+    name = Column(String,nullable=False)
+    description=Column(String,nullable=False)
+    amount = Column(Integer,nullable=False)
+    subscription = relationship('Subscription',back_populates='tier')
+
+
+class Subscription(Base):
+    __tablename__ = 'subscriptions'
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey('companies.id'))
+    tier_id = Column(Integer, ForeignKey('tiers.id'))
+    transaction_code = Column(String, unique=True)
+    created_at = Column(DateTime)
+    company = relationship("Company",back_populates='subscription')
+    tier = relationship("Tier",back_populates='subscription')

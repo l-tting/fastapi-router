@@ -9,3 +9,4 @@ def admin_required(f):
         return f(user=user, *args, **kwargs)
     return admin_decorated
         
+
