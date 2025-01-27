@@ -2,16 +2,19 @@ from pydantic import BaseModel
 from typing import Optional
 
 class Product(BaseModel):
+    company_id:int
     name:str
     buying_price:int
     selling_price:int
     stock_quantity:int
 
 class Sale(BaseModel):
+    company_id: int
     pid: int
     quantity: int
 
 class User(BaseModel):
+    company_id:int
     full_name:str
     email:str
     phone_number:str
@@ -63,3 +66,9 @@ class STKPushCheckResponse(BaseModel):
     success: bool
     message: str
     status: Optional[str] = None
+
+class CompanyCreate(BaseModel):
+    name: str
+    phone:str
+    email:str
+    location:str
