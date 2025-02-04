@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import products,sales,stock,users,vendors,daraja,company,dashboard
+from routers import products,sales,stock,users,vendors,daraja,company,dashboard,tier
 import models,database
 
 app = FastAPI()
@@ -16,6 +16,7 @@ app.add_middleware(
 models.Base.metadata.create_all(database.engine)
 
 # Include the routers for different modules
+app.include_router(tier.router, prefix='/tier' ,tags=['tier'])
 app.include_router(company.router, prefix='/company' ,tags=['company'])
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(products.router, prefix="/products", tags=["products"])

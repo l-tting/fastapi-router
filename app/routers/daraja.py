@@ -17,6 +17,7 @@ async def stk_push(transaction: schemas.STK_PushCreate, db: Session = Depends(ge
         print("Received STK Push data:", response)
 
         if 'CheckoutRequestID' in response:
+
             try:
                 # Add the STK push response to the database
                 mpesa_tx = models.STK_Push(
@@ -65,7 +66,7 @@ async def check_stk_push_status(merchant_request_id: str,checkout_request_id: st
         }
     return {
             "success": transaction.status == models.MPESAStatus.COMPLETED,
-        "message": f"Transaction {transaction.status}",
+           "message": f"Transaction {transaction.status}",
         "status": transaction.status
     }
 

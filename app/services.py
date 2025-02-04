@@ -41,6 +41,10 @@ def get_no_of_users(user:get_current_user,db:Session):
     users = db.query(User).join(Company,Company.id==User.company_id).filter(user.company_id==Company.id).all()
     return len(users)
 
+def get_saleno_today(user:get_current_user,db:Session):
+    no_of_sales_today = db.query(Sale).join(Company,Company.id==Sale.company_id).filter(user.company_id==Company.id).all()
+    return len(no_of_sales_today)
+
 def get_sales_today(user:get_current_user,db:Session):
     sales_today = db.query(
     Company.company_name,
@@ -49,6 +53,25 @@ def get_sales_today(user:get_current_user,db:Session):
     .join(Product, Sale.pid == Product.id).join(Company, Product.company_id == Company.id).filter(func.date(Sale.created_at) == date.today()).filter(Company.id == user.company_id).group_by(Company.company_name) 
 
     return sales_today
+
+from sqlalchemy import func
+from datetime import date
+
+def get_sales_this_month(user: get_current_user, db: Session):
+    sales_this_month = db.query(
+        Company.company_name,
+        func.sum(Sale.quantity * Product.selling_price).label('total_sales')
+    ).select_from(Sale)\
+     .join(Product, Sale.pid == Product.id)\
+     .join(Company, Product.company_id == Company.id)\
+     .filter(func.extract('year', Sale.created_at) == date.today().year) \
+     .filter(func.extract('month', Sale.created_at) == date.today().month) \
+     .filter(Company.id == user.company_id)\
+     .group_by(Company.company_name)
+
+    return sales_this_month
+
+
 
 def get_profit_today(user:get_current_user,db:Session):
     profit_today = db.query(func.sum((Sale.quantity*(Product.selling_price - Product.buying_price)))).join(Product).join(Company).filter(func.date(Sale.created_at)==date.today(),user.company_id==Company.id).group_by(Company.company_name).scalar()

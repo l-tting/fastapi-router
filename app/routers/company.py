@@ -16,9 +16,10 @@ def register_company(company:schemas.CompanyCreate,db:Session = Depends(get_db))
         if existing_company:
             raise HTTPException(status_code=400,detail='Company already registered')
         
+        
         new_company = models.Company(
-            company_name = company.email,
-            phone_number = company.phone,
+            company_name = company.name,
+            phone_number = company.phone_number,
             email = company.email,
             location = company.location
         )
@@ -26,7 +27,7 @@ def register_company(company:schemas.CompanyCreate,db:Session = Depends(get_db))
         db.add(new_company)
         db.commit()
         db.refresh(new_company)
-        return {"Message":"Company created succesfully"}
+        return {"Message":"Company created succesfully","company_id":new_company.id}
     
     except Exception as error:
         raise HTTPException(status_code=500,detail=error)
