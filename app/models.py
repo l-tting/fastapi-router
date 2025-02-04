@@ -26,7 +26,7 @@ class User(Base):
     email = Column(String, nullable=False, unique=True)
     phone_number = Column(String, nullable=False)
     password = Column(String,nullable=False)
-    role = Column(String,nullable=False,default='users')
+    role = Column(String,nullable=False,default='user')
     company = relationship("Company",back_populates='user')
 
 
@@ -129,6 +129,6 @@ class Subscription(Base):
     company_id = Column(Integer, ForeignKey('companies.id'))
     tier_id = Column(Integer, ForeignKey('tiers.id'))
     transaction_code = Column(String, unique=True)
-    created_at = Column(DateTime)
+    created_at = Column(DateTime,server_default=func.now())
     company = relationship("Company",back_populates='subscription')
     tier = relationship("Tier",back_populates='subscription')

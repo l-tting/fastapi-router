@@ -24,6 +24,7 @@ def get_access_token():
         credentials = f"{consumer_key}:{consumer_secret}"
         encoded_credentials = b64encode(credentials.encode()).decode()
         print(f"Encoded Credentials: {encoded_credentials}") 
+
         headers = {
             "Authorization": f"Basic {encoded_credentials}",
             "Content-Type": "application/json"
@@ -49,7 +50,7 @@ def get_access_token():
         raise HTTPException(status_code=500, detail=f"Failed to get access token: {str(e)}")
 
 
-async def stk_push_sender(mobile:str, amount:float,access_token:str):
+async def stk_push_sender(mobile:str, amount:float, access_token:str):
     try:
 
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -83,6 +84,9 @@ async def stk_push_sender(mobile:str, amount:float,access_token:str):
         return {"error": f"Request failed: {str(e)}"}
     except Exception as e:
         return {"error": f"Error occurred: {str(e)}"}
+    
+
+    
 
 def check_transaction_status(merchant_request_id: str, checkout_request_id: str, db):
     transaction = db.query(models.STK_Push).filter(

@@ -31,14 +31,16 @@ def profit_per_product(user = Depends(get_current_user),db:Session = Depends(get
     return {"Profit per product":profit_product}
 
 
-@router.get('/quick_stats')
+@router.get('sale/quick_stats')
 def dashboard_quick_data(user=Depends(get_current_user),db:Session=Depends(get_db)):
     sales_today= services.get_sales_today(user,db)
     profit_today = services.get_profit_today(user,db)
     no_of_products=services.get_no_of_products(user,db)
     no_of_users = services.get_no_of_users(user,db)
+    sales_this_month = services.get_sales_this_month(user,db)
 
     return {
         "sales_today":sales_today,
     #     "no of products":no_of_products,"no of users":no_of_users
+        "sales_this_month":sales_this_month
      }

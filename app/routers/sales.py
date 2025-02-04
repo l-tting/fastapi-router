@@ -5,6 +5,7 @@ from models import Company,Product
 from database import get_db
 from auth import get_current_user
 from services import get_products_by_company
+from datetime import date
 
 router = APIRouter()
 
@@ -26,11 +27,7 @@ def make_sale(request: schemas.Sale, user=Depends(get_current_user), db: Session
     if product.stock_quantity < request.quantity:
         raise HTTPException(status_code=400, detail="Not enough stock available")
     
-    if request.company_id != user.company_id:
-        raise HTTPException(status_code=400,detail="User does not match company info")
-
-    # Create a new sale record
-    new_sale = models.Sale(company_id = request.company_id, pid=request.pid, quantity=request.quantity)
+    new_sale = models.Sale(company_id = user.company_id, pid=request.pid, quantity=request.quantity)
     product.stock_quantity -= request.quantity  # Reduce stock by the quantity sold
 
     db.add(new_sale)
@@ -53,7 +50,8 @@ def fetch_sales(user=Depends(get_current_user), db: Session = Depends(get_db)):
             "id": sale.id,
             "pid": sale.pid,  
             "quantity": sale.quantity,
-            "created_at": sale.created_at
+            "created_at": sale.created_at.date(),
+            "price":sale.product.selling_price
         })
     return {"sales_data": sales_data}
 
