@@ -42,12 +42,13 @@ def create_refresh_token(data:dict,expires_delta:timedelta | None=None):
     encoded_jwt = jwt.encode(to_encode,SECRET_KEY,algorithm=ALGORITHM)
     return encoded_jwt
         
+
 #retrieve and validate Authentication Bearer token
 def get_token_auth_heaaders(credentials:HTTPAuthorizationCredentials=Depends(HTTPBearer())):
     if credentials.scheme != "Bearer":
         raise HTTPException(status_code=403,detail="Invalid authentication scheme")
-    
     return credentials.credentials
+
 
 # -> str specifies return type of the func
 # func call in every request to ensure cookie is present
@@ -57,11 +58,13 @@ def get_token_from_cookie(request: Request) -> str:
         raise HTTPException(status_code=401, detail="Access token missing from cookies")
     return token
 
+
 def get_refresh_token(request:Request) ->str:
     token = request.cookies.get("refresh_token")
     if not token:
         raise HTTPException(status_code=401,detail="Refresh token missing from cookies")
     return token
+
 
 #Depends-means the dependency is executed first before handler
 async def get_current_user(access_token: str = Depends(get_token_auth_heaaders)):
@@ -80,9 +83,9 @@ async def get_current_user(access_token: str = Depends(get_token_auth_heaaders))
     user = check_user(email)
     if not user:
         raise HTTPException(status_code=401, detail="User does not exist")
-    
     print("User",user)
     return user
+
 
 def verify_refresh_token(refresh_token:str=Depends(get_refresh_token)):
     try:
