@@ -10,12 +10,11 @@ class Company(Base):
     company_name = Column(String,nullable=False)
     phone_number = Column(Integer,nullable=False)
     email = Column(String,unique=True,nullable=False)
-    location = Column(String,nullable=False)
     user = relationship('User', back_populates='company')
     subscription = relationship('Subscription',back_populates='company')
     product = relationship('Product',back_populates='company')
     sales = relationship('Sale',back_populates='company')
-    vendor = relationship("Vendor",back_populates='company')
+    stock = relationship("Stock",back_populates='company')
 
 
 class User(Base):
@@ -24,7 +23,7 @@ class User(Base):
     company_id = Column(Integer,ForeignKey('companies.id'),nullable=False)
     full_name = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
-    phone_number = Column(String, nullable=False)
+    
     password = Column(String,nullable=False)
     role = Column(String,nullable=False,default='user')
     company = relationship("Company",back_populates='user')
@@ -38,9 +37,19 @@ class Product(Base):
     name = Column(String, nullable=False)
     buying_price = Column(Integer, nullable=False)
     selling_price = Column(Integer, nullable=False)
-    stock_quantity = Column(Integer, nullable=False)
     sales = relationship("Sale", back_populates='product')
     company = relationship("Company",back_populates='product')
+    stock = relationship("Stock",back_populates='product')
+    
+class Stock(Base):
+    __tablename__ = 'stock'
+    id = Column(Integer,primary_key=True)
+    company_id = Column(Integer,ForeignKey('companies.id'),nullable=False)
+    product_id = Column(Integer,ForeignKey('products.id'),nullable=False)
+    stock_count = Column(Integer,nullable=False)
+    created_at = Column(DateTime,default=func.now())
+    product = relationship("Product",back_populates='stock')
+    company = relationship("Company",back_populates='stock')
     
 
 
@@ -64,19 +73,9 @@ class Vendor(Base):
     phone_number = Column(String,nullable=False,unique=True)
     email = Column(String,nullable = False, unique=True)
     address = Column(String,nullable=False)
-    stock = relationship("Stock",back_populates='vendor')
-    company = relationship('Company',back_populates='vendor')
 
 
-class Stock(Base):
-    __tablename__ = 'stock'
-    id = Column(Integer,primary_key=True)
-    product_name = Column(String,nullable=False)
-    stock_count = Column(Integer,nullable=False)
-    vendor_name = Column(String,ForeignKey('vendors.vendor_name'),nullable=False)
-    created_at = Column(DateTime,default=func.now())
-    vendor = relationship('Vendor',back_populates='stock')
-    
+
     
 class Payment(Base):
     __tablename__ = 'payments'

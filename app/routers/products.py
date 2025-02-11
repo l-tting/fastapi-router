@@ -10,7 +10,7 @@ router = APIRouter()
 def add_product(request: schemas.Product, user=Depends(get_current_user), db: Session = Depends(get_db)):
     
     new_product = models.Product(company_id = user.company_id, name=request.name,
-                  buying_price=request.buying_price, selling_price=request.selling_price, stock_quantity=request.stock_quantity)
+                  buying_price=request.buying_price, selling_price=request.selling_price)
     
     db.add(new_product)
     db.commit()

@@ -6,10 +6,9 @@ class Product(BaseModel):
     name:str
     buying_price:int
     selling_price:int
-    stock_quantity:int
+    
 
 class Sale(BaseModel):
-
     pid: int
     quantity: int
 
@@ -17,7 +16,6 @@ class User(BaseModel):
 
     full_name:str
     email:str
-    phone_number:str
     password:str
 
 
@@ -38,9 +36,9 @@ class VendorCreate(BaseModel):
     address:str
 
 class Stock(BaseModel):
-    product_name:str
+    product_id:int
     stock_count:int
-    vendor_name:str
+  
 
 class STK_PushResponse(BaseModel):
     merchant_request_id:str
@@ -71,7 +69,7 @@ class CompanyCreate(BaseModel):
     name: str
     phone_number:str
     email:str
-    location:str
+    
 
 class TierCreate(BaseModel):
     name:str

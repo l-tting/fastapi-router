@@ -23,7 +23,7 @@ app.include_router(products.router, prefix="/products", tags=["products"])
 app.include_router(dashboard.router,prefix='/dashboard',tags=['dashboard'])
 app.include_router(sales.router, prefix="/sales", tags=["sales"])
 app.include_router(vendors.router, prefix="/vendors", tags=["vendors"])
-app.include_router(stock.router, prefix="/stocks", tags=["stocks"])
+app.include_router(stock.router, prefix="/stock", tags=["stocks"])
 app.include_router(daraja.router, prefix='/stk_push' ,tags=['stk_push'])
 
 @app.get('/')

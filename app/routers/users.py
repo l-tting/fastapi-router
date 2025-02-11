@@ -18,9 +18,7 @@ def register_user(user: schemas.User,company_id :int=Query(...), db: Session = D
     new_user = models.User(
         company_id = company_id,
         full_name=user.full_name,
-       
         email=user.email,
-        phone_number=user.phone_number,
         password=hashed_password
     )
     db.add(new_user)
