@@ -21,7 +21,7 @@ def register_company(company:schemas.CompanyCreate,db:Session = Depends(get_db))
             company_name = company.name,
             phone_number = company.phone_number,
             email = company.email,
-            location = company.location
+            
         )
 
         db.add(new_company)
