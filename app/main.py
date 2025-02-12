@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import products,sales,stock,users,vendors,daraja,company,dashboard,tier
+from routers import products,sales,stock,users,vendors,daraja,company,dashboard,tier,email
 import models,database
 
 app = FastAPI()
@@ -25,6 +25,7 @@ app.include_router(sales.router, prefix="/sales", tags=["sales"])
 app.include_router(vendors.router, prefix="/vendors", tags=["vendors"])
 app.include_router(stock.router, prefix="/stock", tags=["stocks"])
 app.include_router(daraja.router, prefix='/stk_push' ,tags=['stk_push'])
+app.include_router(email.router, prefix='/send_mail' ,tags=['send_email'])
 
 @app.get('/')
 def index():
