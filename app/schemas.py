@@ -75,3 +75,9 @@ class TierCreate(BaseModel):
     name:str
     description:str
     amount:float
+
+class EmailSchema(BaseModel):
+    sender_name:str
+    sender_email:str
+    sender_phone:str
+    body:str
