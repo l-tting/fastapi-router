@@ -13,7 +13,6 @@ class Sale(BaseModel):
     quantity: int
 
 class User(BaseModel):
-
     full_name:str
     email:str
     password:str

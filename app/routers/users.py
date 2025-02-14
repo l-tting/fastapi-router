@@ -33,7 +33,7 @@ def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
     if registered_user is None or not check_password_hash(registered_user.password, user.password):
         raise HTTPException(status_code=404, detail="Invalid credentials")
     access_token = create_access_token(data={"user": user.email}, expires_delta=timedelta(hours=1))
-    return {"access_token": access_token}
+    return {"access_token": access_token,"current_user":registered_user.full_name}
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
