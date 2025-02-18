@@ -9,7 +9,7 @@ import uuid
 
 SECRET_KEY ='1kslll3o3l'
 ALGORITHM ='HS256'
-ACCESS_TOKEN_EXPIRY_TIME = timedelta(minutes=30)
+ACCESS_TOKEN_EXPIRY_TIME = timedelta(days=30)
 
 # provides convinient way for hashind and verifying passwords
 pwd_context = CryptContext(schemes=['bcrypt'],deprecated="auto")
