@@ -4,31 +4,49 @@ from datetime import date
 from models import Sale,Product,User,Company,Stock
 from sqlalchemy.ext.asyncio import AsyncSession
 from auth import get_current_user
+from fastapi import HTTPException
 
 
 
 def sales_per_day(user:get_current_user,db:Session):
-    sales_day_day= db.query(func.date(Sale.created_at).label("dates"),
-                    func.sum(Sale.quantity * Product.selling_price).label("sales")).join(Product).filter(user.company_id==Company.id).group_by('dates').all()
-  
-    sales_data =[{"date":str(dates),"sales":sales} for dates,sales in sales_day_day]
-
-    return sales_data
-
+    try:
+        sales_day_day= db.query(func.date(Sale.created_at).label("dates"),
+                        func.sum(Sale.quantity * Product.selling_price).label("sales")).join(Product,Product.id==Sale.pid).join(Company,Company.id==Sale.company_id
+                        ).filter(user.company_id==Company.id).group_by('dates')
+        sale_today = sales_day_day.filter(func.date(Sale.created_at)==date.today()).all()
+        all_sales_per_day = sales_day_day.group_by('dates').all()
+        if sales_day_day:
+            sales_data_today =[{"date":str(dates),"sales":sales} for dates,sales in sale_today]
+            sales_data_all =[{"date":str(dates),"sales":sales} for dates,sales in all_sales_per_day]
+            return {"sales_today":sales_data_today,"all_sale_data":sales_data_all}
+        raise HTTPException(status_code=404,detail='Sales per day no found')
+    except Exception as error:
+        raise HTTPException(status_code=500,detail=f'{error}')
 
 
 def sales_per_product(user:get_current_user,db:Session):
-    sales_per_prod = db.query((Product.name).label("product"),
-                        func.sum(Product.selling_price * Sale.quantity).label("sales")).join(Sale).join(Company).filter(user.company_id==Company.id).group_by("product").all()
-    sales_prod =[{"product":product,"sale":sale} for product,sale in sales_per_prod]
-    return sales_prod
+    try:
+        sales_per_prod = db.query((Product.name).label("product"),
+                            func.sum(Product.selling_price * Sale.quantity).label("sales")).join(Sale).join(Company).filter(user.company_id==Company.id).group_by("product").all()
+        if sales_per_prod:
+            sales_prod =[{"product":product,"sale":sale} for product,sale in sales_per_prod]
+            return sales_prod
+        raise HTTPException(status_code=404,detail=f'{error}')
+    except Exception as error:
+        raise HTTPException(status_code=500,detail=f'{error}')
+
 
 
 def profit_per_day(user:get_current_user,db:Session):
-    profit_day = db.query(func.date(Sale.created_at).label("dates"),
-                          func.sum(Sale.quantity*(Product.selling_price -Product.buying_price)).label("profit")).join(Product).filter(user.company_id==Company.id).group_by('dates').all()
-    profit_data =[{"date":dates,"profit":profit} for dates,profit in profit_day]
-    return profit_data
+    try:
+        profit_day = db.query(func.date(Sale.created_at).label("dates"),
+                            func.sum(Sale.quantity*(Product.selling_price -Product.buying_price)).label("profit")).join(Product).filter(user.company_id==Company.id).group_by('dates').all()
+        if profit_day:
+            profit_data =[{"date":dates,"profit":profit} for dates,profit in profit_day]
+            return profit_data
+        raise HTTPException(status_code=404,detail='Profit per day data not found')
+    except Exception as error:
+        raise HTTPException(status_code=500,detail=f'{error}')
 
 
 def profit_per_product(user: get_current_user, db: Session):
@@ -191,3 +209,26 @@ def first_five_sales_product(user,db:Session):
         formatted_five_sales_product =[{"product_name":name,"stock_count":stock_count} for name,stock_count in five_sales_product]
         return formatted_five_sales_product
     return None
+
+
+def get_stock_per_product(user,db:Session):
+    stock_per_product = db.query(Product.name,Stock.stock_count).join(Stock,Stock.product_id==Product.id
+            ).filter(Company.id==user.company_id).all()
+    if stock_per_product:
+        formatted_stock_per_product = [{"product_name":name,"stock_count":stock_count} for name,stock_count in stock_per_product]
+        return formatted_stock_per_product
+    return None
+
+def get_test_stock(user,db:Session):
+    test_stock = db.query(Product.name,Stock.stock_count).join(Product,Product.id==Stock.product_id).filter(Product.company_id==user.company_id).order_by(Stock.stock_count.desc())
+    first_five = test_stock.limit(5).all()
+    all_stock = test_stock.all()
+    if test_stock:
+        result_five = [{"product_name":name,"stock_count":stock_count} for name ,stock_count in first_five]
+        rest_stock = [{"product_name":name,"stock_count":stock_count} for name,stock_count in all_stock]
+        return {
+            "five":result_five,
+            "all":rest_stock,
+        }
+    return None
+       
