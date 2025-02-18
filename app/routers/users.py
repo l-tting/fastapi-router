@@ -32,7 +32,7 @@ def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
     registered_user = db.query(models.User).filter(models.User.email == user.email).first()
     if registered_user is None or not check_password_hash(registered_user.password, user.password):
         raise HTTPException(status_code=404, detail="Invalid credentials")
-    access_token = create_access_token(data={"user": user.email}, expires_delta=timedelta(hours=1))
+    access_token = create_access_token(data={"user": user.email}, expires_delta=timedelta(days=30))
     return {"access_token": access_token,"current_user":registered_user.full_name}
 
 
