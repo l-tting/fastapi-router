@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-import models, schemas
+import models, schemas,services
 from models import Company,Product,Stock
 from database import get_db
 from auth import get_current_user
@@ -34,7 +34,6 @@ def make_sale(request: schemas.Sale, user=Depends(get_current_user), db: Session
     stock.stock_count = new_stock_count
     db.commit()
 
-
     new_sale = models.Sale(company_id = user.company_id, pid=request.pid, quantity=request.quantity)
     db.add(new_sale)
     db.commit()
@@ -64,56 +63,35 @@ def fetch_sales(user=Depends(get_current_user), db: Session = Depends(get_db)):
 
 
 
-@router.get("/{sale_id}", status_code=status.HTTP_200_OK)
-def fetch_sale(sale_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
-    sale = db.query(models.Sale).join(models.User).join(models.Product).filter(models.Sale.id == sale_id).first()
-    amount = sale.quantity * sale.product.selling_price
 
-    if not sale:
-        raise HTTPException(status_code=404, detail="Sale not found")
+# @router.put("/{sale_id}", status_code=status.HTTP_202_ACCEPTED)
+# def update_sale(sale_id: int, request: schemas.Sale, user=Depends(get_current_user), db: Session = Depends(get_db)):
+#     # Fetch the sale to be updated
+#     sale = db.query(models.Sale).filter(models.Sale.id == sale_id).first()
+#     if not sale:
+#         raise HTTPException(status_code=404, detail="Sale not found")
 
-    return {
-        "id": sale.id,
-        "pid": sale.pid,
-        "user_id": sale.user_id,
-        "product_name": sale.product.name,
-        "quantity": sale.quantity,
-        'amount':amount
-    }
-
-@router.put("/{sale_id}", status_code=status.HTTP_202_ACCEPTED)
-def update_sale(sale_id: int, request: schemas.Sale, user=Depends(get_current_user), db: Session = Depends(get_db)):
-    # Fetch the sale to be updated
-    sale = db.query(models.Sale).filter(models.Sale.id == sale_id).first()
-    if not sale:
-        raise HTTPException(status_code=404, detail="Sale not found")
-
-    # Fetch the product associated with the sale
-    product = db.query(models.Product).filter(models.Product.id == sale.pid).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+#     # Fetch the product associated with the sale
+#     product = db.query(models.Product).filter(models.Product.id == sale.pid).first()
+#     if not product:
+#         raise HTTPException(status_code=404, detail="Product not found")
 
 
-    quantity_difference = request.quantity - sale.quantity
-    sale.quantity = request.quantity
-    product.stock_quantity -= quantity_difference  # Update stock quantity based on the new sale quantity
+#     quantity_difference = request.quantity - sale.quantity
+#     sale.quantity = request.quantity
+#     product.stock_quantity -= quantity_difference  # Update stock quantity based on the new sale quantity
 
-    db.commit()
+#     db.commit()
 
-    return {"message": "Sale updated successfully"}
+#     return {"message": "Sale updated successfully"}
 
 
-@router.get("/user/{user_id}", status_code=status.HTTP_200_OK)
-def fetch_sales_by_user(user_id: int, db: Session = Depends(get_db)):
-    sales = db.query(models.Sale).filter(models.Sale.user_id == user_id).join(models.User).all()
+@router.get('/metrics',status_code=status.HTTP_200_OK)
+def get_sales_data(user=Depends(get_current_user),db:Session=Depends(get_db)):
+    sales_per_month = services.get_sale_time_data(user,db)
+    return {"Sales data":sales_per_month}
 
-    if not sales:
-        raise HTTPException(status_code=404, detail="No sales found for this user")
 
-    return [{
-        "id": sale.id,
-        "pid": sale.pid,
-        "user_id": sale.user_id,
-        "first_name": sale.user.first_name,
-        "quantity": sale.quantity
-    } for sale in sales]
+
+
+
