@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-import models, schemas
+import models, schemas,services
 from database import get_db
 from auth import get_current_user
 
@@ -23,6 +23,11 @@ def fetch_products(user=Depends(get_current_user), db: Session = Depends(get_db)
     print(f"User ID: {user.id}")
     products = db.query(models.Product).filter(models.Product.company_id==user.company_id).all()
     return {"products":products}
+
+@router.get('/stats')
+def fetch_product_stats(user=Depends(get_current_user),db:Session = Depends(get_db)):
+    no_of_products = services.get_no_of_products(user,db)
+    return {"no_of_products":no_of_products}
 
 
 

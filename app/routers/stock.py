@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-import models, schemas
+import models, schemas,services
 from database import get_db
 from auth import get_current_user
 from utils import admin_required
@@ -44,7 +44,11 @@ def get_stock(user=Depends(get_current_user),db:Session=Depends(get_db)):
 
     return {"my_stock":stock_data}
 
-
+@router.get('/stats',status_code=status.HTTP_200_OK)
+def get_stock_data(user=Depends(get_current_user),db:Session=Depends(get_db)):
+    low_stock_number = services.get_depleting_products(user,db)
+    high_low_stock = services.get_highest_lowest_stock(user,db)
+    return {"high_low_stock":high_low_stock}
 
 @router.get("/depleted", status_code=status.HTTP_200_OK)
 @admin_required
