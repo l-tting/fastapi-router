@@ -20,15 +20,14 @@ def add_product(request: schemas.Product, user=Depends(get_current_user), db: Se
 
 @router.get("/", status_code=status.HTTP_200_OK)
 def fetch_products(user=Depends(get_current_user), db: Session = Depends(get_db)):
-    print(f"User ID: {user.id}")
     products = db.query(models.Product).filter(models.Product.company_id==user.company_id).all()
     return {"products":products}
 
-@router.get('/stats')
-def fetch_product_stats(user=Depends(get_current_user),db:Session = Depends(get_db)):
-    no_of_products = services.get_no_of_products(user,db)
-    return {"no_of_products":no_of_products}
 
+@router.get('/metrics')
+def fetch_product_metrics(user=Depends(get_current_user),db:Session = Depends(get_db)):
+    product_metrics = services.get_product_metrics(user,db)
+    return {"product_metrics":product_metrics}
 
 
 @router.get("/{product_id}", status_code=status.HTTP_200_OK)
