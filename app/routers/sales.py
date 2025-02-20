@@ -89,7 +89,8 @@ def fetch_sales(user=Depends(get_current_user), db: Session = Depends(get_db)):
 @router.get('/metrics',status_code=status.HTTP_200_OK)
 def get_sales_data(user=Depends(get_current_user),db:Session=Depends(get_db)):
     sales_per_month = services.get_sale_time_data(user,db)
-    return {"Sales data":sales_per_month}
+    counts = services.get_sale_counts(user,db)
+    return {"sales_metrics":sales_per_month,"counts":counts}
 
 
 
