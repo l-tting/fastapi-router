@@ -44,14 +44,10 @@ def get_stock(user=Depends(get_current_user),db:Session=Depends(get_db)):
 
     return {"my_stock":stock_data}
 
-@router.get('/stats',status_code=status.HTTP_200_OK)
+@router.get('/metrics',status_code=status.HTTP_200_OK)
 def get_stock_data(user=Depends(get_current_user),db:Session=Depends(get_db)):
-    low_stock_number = services.get_depleting_products(user,db)
-    high_low_stock = services.get_highest_lowest_stock(user,db)
-    return {"high_low_stock":high_low_stock}
+    stock_metrics = services.get_stock_metrics(user,db)
+    stock_worth = services.get_stock_worth(user,db)
+    return {"stock_metrics":stock_metrics,"stock_worth":stock_worth}
+    
 
-@router.get("/depleted", status_code=status.HTTP_200_OK)
-@admin_required
-def depleted_stock(user=Depends(get_current_user), db: Session = Depends(get_db)):
-    depleting_products = get_depleting_products(db)
-    return {"depleting": depleting_products}

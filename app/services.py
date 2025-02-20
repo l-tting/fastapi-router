@@ -24,17 +24,57 @@ def sales_per_day(user:get_current_user,db:Session):
         raise HTTPException(status_code=500,detail={"Error fetching sales per day":error})
 
 
+
 def get_sale_time_data(user, db: Session):
     # Fetch sales data grouped by month
     sale_per_timedelta =  db.query(
             func.date( Sale.created_at).label('dates'),
             func.sum(Sale.quantity * Product.selling_price).label('total_sales')
-        ).join(Product, Sale.pid == Product.id).filter(Sale.company_id == user.company_id).group_by(Sale.created_at).all()
-    
-
+        ).join(Product, Sale.pid == Product.id).filter(Sale.company_id == user.company_id).group_by(func.date(Sale.created_at)).all()
   
     formatted_sale_per_timedelta = [{"date":dates,"sales":sale} for dates, sale in sale_per_timedelta] if sale_per_timedelta else 0
-    return formatted_sale_per_timedelta
+
+    today = date.today()
+    current_month = today.month
+    current_year = today.year
+
+    sales_today = next((item['sales'] for item in formatted_sale_per_timedelta if item['date'] == today), 0)
+    sales_this_month = sum(item['sales'] for item in formatted_sale_per_timedelta 
+                        if item['date'].month == current_month and item['date'].year == current_year
+                    )
+
+    return {"form":formatted_sale_per_timedelta, "sales_today":sales_today,"sales_this_month":sales_this_month}
+
+
+
+def get_sale_counts(user,db:Session):
+
+    sale_per_timedelta = db.query(
+        func.date(Sale.created_at).label('dates'),
+        func.count(Sale.id).label('total_sales_count')  # Count the number of sales (transactions) per day
+    ).join(Product, Sale.pid == Product.id).filter(Sale.company_id == user.company_id).group_by(func.date(Sale.created_at)).all()
+
+    # Format sales data into a list of dictionaries
+    formatted_sale_per_timedelta = [{"date": dates, "sales_count": sales_count} for dates, sales_count in sale_per_timedelta] if sale_per_timedelta else 0
+
+    # Get today's date
+    today = date.today()
+
+    # Get current month and year
+    current_month = today.month
+    current_year = today.year
+
+    # Number of sales today (count of transactions)
+    sales_today_count = next((item['sales_count'] for item in formatted_sale_per_timedelta if item['date'] == today), 0)
+
+    # Number of sales this month (count of transactions)
+    sales_this_month_count = sum(
+        item['sales_count'] for item in formatted_sale_per_timedelta 
+        if item['date'].month == current_month and item['date'].year == current_year
+    )
+    return {"sale_count_t":sales_today_count,"stm":sales_this_month_count}
+    
+
 
 def sales_per_product(user:get_current_user,db:Session):
     try:
@@ -74,25 +114,25 @@ def profit_per_product(user: get_current_user, db: Session):
     return None
 
 
-def get_no_of_products(user:get_current_user,db:Session):
+def get_product_metrics(user,db:Session):
     try:
-        products = db.query(Product).join(Company).filter(user.company_id==Company.id).all()
-        return len(products) if products else 0
+        product_by_price = db.query((Product.name).label('name'), (Product.selling_price).label('price')).filter(Product.company_id==user.company_id)\
+               .group_by(Product.name,Product.selling_price).order_by(Product.selling_price).all()
+        formatted_product_by_price = [{"name":name,"price":price} for name,price in product_by_price]
+        if formatted_product_by_price:
+            total_products = len(formatted_product_by_price)
+            lowest_price_product = min(formatted_product_by_price, key=lambda x: x['price'])
+            highest_price_product = max(formatted_product_by_price, key=lambda x: x['price'])
+            total_price = sum(product['price'] for product in formatted_product_by_price)
+            average_price = total_price / total_products
+            
+            return {"product_count":total_products,"lowest_price_product":lowest_price_product,"highest_price_product":highest_price_product,"average_price":average_price}
+        else:
+            lowest_price_product = None
+            highest_price_product = None
+            
     except Exception as e:
-        raise HTTPException(status_code=500,detail={"Error fetching no of prods":e})
-
-
-def get_no_of_users(user:get_current_user,db:Session):
-    try:
-        users = db.query(User).join(Company,Company.id==User.company_id).filter(user.company_id==Company.id).all()
-        return len(users) if users else 0
-    except Exception as e:
-        raise HTTPException(status_code=500,detail={"Error fetching no of users":e})
-
-
-# def get_saleno_today(user:get_current_user,db:Session):
-#     no_of_sales_today = db.query(Sale).join(Company,Company.id==Sale.company_id).filter(user.company_id==Company.id).filter(func.date(Sale.created_at) == date.today()).all()
-#     return len(no_of_sales_today)
+        raise HTTPException(status_code=500,detail={'Error getting prods by price':e})
 
 
 def get_sales_today(user: get_current_user, db: Session):
@@ -107,17 +147,6 @@ def get_sales_today(user: get_current_user, db: Session):
     return sales_today if sales_today is not None else 0
 
 
-
-def get_no_of_monthly_sales(user:get_current_user,db:Session):
-    no_of_sales = db.query(Sale).filter(Sale.company_id==user.company_id).all()
-    if no_of_sales:
-        return len(no_of_sales)
-    return None
-
-
-
-
-
 def get_depleting_products(user:get_current_user,db:Session):
     products = db.query(Stock).filter(Stock.stock_count < 20).filter(Stock.company_id==user.company_id).all()
     # data = [lowstock for lowstock in products]
@@ -130,45 +159,18 @@ def get_products_by_company(user:get_current_user,db:Session):
     company_pids = {p.id for p in products}
     return company_pids
 
-def get_total_users(user:get_current_user,db:Session):
-    users = db.query(User).join()
 
-def get_lowest_stock_product(user:get_current_user,db:Session):
-    lowest_stock_product = db.query(Product.name,Stock.stock_count).join(Product,Product.id==Stock.product_id).filter(Stock.company_id==user.company_id).order_by(Stock.stock_count.asc()).first()
-    if lowest_stock_product:
-        return {
-            "product_name": lowest_stock_product[0],  # Product name
-            "stock_count": lowest_stock_product[1]    # Stock count
-        }
-    return None
+def get_stock_metrics(user,db:Session):
+    stock_metrics = db.query(Product.name,Stock.stock_count).join(Stock,Stock.product_id==Product.id).filter(Product.company_id==user.company_id).all()
+    formatted_stock_metrics = [{"name":name,"stock":stock} for name,stock in stock_metrics]
+    lowest_stock_product = min(formatted_stock_metrics,key=lambda x: x['stock'])
+    highest_stock_product = max(formatted_stock_metrics,key=lambda x:x['stock'])
+    return {"lowest_stock_product":lowest_stock_product,"highest_stock_product":highest_stock_product}
 
-def get_highest_stock_product(user,db:Session):
-    highest_stock_product = db.query(Product.name,Stock.stock_count).join(Product,Product.id==Stock.product_id).filter(Stock.company_id==user.company_id).order_by(Stock.stock_count.desc()).first()
-    if highest_stock_product:
-        return {
-            "product_name": highest_stock_product[0],  # Product name
-            "stock_count": highest_stock_product[1]    # Stock count
-        }
-    return None
-
-def get_highest_lowest_stock(user,db):
-    try:
-        high_low_stock = db.query(Product.name,Stock.stock_count).join(Product,Product.id==Stock.product_id).filter(Stock.company_id==user.company_id)
-        
-        highest_stock_prod = high_low_stock.order_by(Stock.stock_count.desc()).first()
-        lowest_stock_prod = high_low_stock.order_by(Stock.stock_count.asc()).first()
-        return {
-            "highest_stock_product":{ 
-             "product_name": highest_stock_prod[0],  
-            "stock_count": highest_stock_prod[1] 
-            },
-            "lowest_stock_prod":{
-                "product_name": lowest_stock_prod[0],  
-                "stock_count": lowest_stock_prod[1]    
-            }
-            }
-    except Exception as e:
-        raise HTTPException(status_code=500,detail={"Error fetching highe and low stock":e})
+def get_stock_worth(user,db:Session):
+    stock_worth = db.query(func.sum(Product.selling_price * Stock.stock_count)).join(Stock,Stock.product_id==Product.id)\
+                .filter(Product.company_id==user.company_id).scalar()
+    return stock_worth
 
 
 def get_first_five_stock(user,db:Session):
