@@ -1,8 +1,8 @@
 from fastapi import APIRouter,HTTPException,BackgroundTasks,Depends
 from pydantic import BaseModel
-from schemas import EmailSchema
+from app.schemas import EmailSchema
 from fastapi_mail import FastMail,MessageSchema,ConnectionConfig
-from auth import get_current_user
+from app.auth import get_current_user
 
 
 router = APIRouter()

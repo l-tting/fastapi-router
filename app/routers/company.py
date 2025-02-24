@@ -1,7 +1,7 @@
 from fastapi import APIRouter,status,Depends,HTTPException
-import schemas,models
+from app import schemas,models
 from sqlalchemy.orm import Session
-from database import get_db
+from app.database import get_db
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
