@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import products,sales,stock,users,vendors,daraja,company,dashboard,tier,email
-import models,database
+from app.routers import products,sales,stock,users,vendors,daraja,company,dashboard,tier,email
+from app import models,database
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
-from limiter import limiter 
+# from limiter import limiter 
 
 app = FastAPI()
 
@@ -18,7 +18,7 @@ app.add_middleware(
 
 models.Base.metadata.create_all(database.engine)
 
-app.state.limiter = limiter
+# app.state.limiter = limiter
 
 # Add exception handler for rate limit exceeded
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

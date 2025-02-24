@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 import requests
 from datetime import datetime
 import httpx
-import schemas,models
+from app import schemas,models
 
 consumer_key = '7tWrv1GzADCWG7gdFeXlGGfWKJdu9iplFEXA3AL2L0c6KDoT'
 consumer_secret = 'VIzhHEdmCN8519EsnkKH4DpZ0nOoMBcFNDCXlpQktZnKn4YktpL8fB0A1YenRanE'

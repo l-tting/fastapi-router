@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func,Enum
 from sqlalchemy.orm import relationship
-from database import Base
+from app.database import Base
 import enum
 # from database import Base
 
@@ -130,3 +130,4 @@ class Subscription(Base):
     created_at = Column(DateTime,server_default=func.now())
     company = relationship("Company",back_populates='subscription')
     tier = relationship("Tier",back_populates='subscription')
+#status for subscription
