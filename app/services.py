@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import date,datetime
-from models import Sale,Product,User,Company,Stock
+from app.models import Sale,Product,User,Company,Stock
 from sqlalchemy.ext.asyncio import AsyncSession
-from auth import get_current_user
+from app.auth import get_current_user
 from fastapi import HTTPException
 
 
@@ -42,8 +42,16 @@ def get_sale_time_data(user, db: Session):
     sales_this_month = sum(item['sales'] for item in formatted_sale_per_timedelta 
                         if item['date'].month == current_month and item['date'].year == current_year
                     )
+    sales_per_month = {}
+    for item in formatted_sale_per_timedelta:
+        month = item['date'].strftime('%m')
+        if month not in sales_per_month:
+            sales_per_month[month] = 0
+        sales_per_month[month] += item['sales']
 
-    return {"form":formatted_sale_per_timedelta, "sales_today":sales_today,"sales_this_month":sales_this_month}
+    # Format the sales per month as a list of dicts
+    formatted_sales_per_month = [{"month": month, "sales": sales} for month, sales in sales_per_month.items()]
+    return {"sales_per_day":formatted_sale_per_timedelta,"sales_today":sales_today,"sales_this_month":sales_this_month,"sales_per_month": formatted_sales_per_month}
 
 
 
@@ -78,14 +86,21 @@ def get_sale_counts(user,db:Session):
 
 def sales_per_product(user:get_current_user,db:Session):
     try:
-        sales_per_prod = db.query((Product.name).label("product"),
-                            func.sum(Product.selling_price * Sale.quantity).label("sales")).join(Sale).join(Company).filter(user.company_id==Company.id).group_by("product").all()
-        if sales_per_prod:
-            sales_prod =[{"product":product,"sale":sale} for product,sale in sales_per_prod]
-            return sales_prod
-        raise HTTPException(status_code=404,detail=f'{error}')
+        sales_per_product = db.query((Product.name).label("product"),
+                            func.sum(Product.selling_price * Sale.quantity).label("sales")).join(Sale).join(Company).filter(user.company_id==Company.id)\
+                         .group_by(Product.name).order_by(func.sum(Product.selling_price * Sale.quantity).desc()).all()
+                      
+        formatted_sales_per_prod = [{"prod_name":product,"sale":sale} for product,sale in sales_per_product] if sales_per_product else 0
+        most_sold_product = formatted_sales_per_prod[0]
+        top_5_products = formatted_sales_per_prod[:5]
+        return {
+            "sales_per_product":formatted_sales_per_prod,
+            "most_sold_product":most_sold_product,
+            "top_five_products":top_5_products
+        }
     except Exception as error:
         raise HTTPException(status_code=500,detail=f'{error}')
+
 
 
 def profit_per_day(user:get_current_user,db:Session):
@@ -160,6 +175,10 @@ def get_products_by_company(user:get_current_user,db:Session):
     return company_pids
 
 
+def get_all_stock(user,db:Session):
+    all_stock_data = db.query(Stock).filter(Stock.company_id==user.company_id).all()
+    return all_stock_data
+
 def get_stock_metrics(user,db:Session):
     stock_metrics = db.query(Product.name,Stock.stock_count).join(Stock,Stock.product_id==Product.id).filter(Product.company_id==user.company_id).all()
     formatted_stock_metrics = [{"name":name,"stock":stock} for name,stock in stock_metrics]
@@ -215,10 +234,12 @@ def first_five_sales_product(user,db:Session):
 
 def get_stock_per_product(user,db:Session):
     stock_per_product = db.query(Product.name,Stock.stock_count).join(Stock,Stock.product_id==Product.id
-            ).filter(Company.id==user.company_id).all()
+            ).filter(Product.company_id==user.company_id).all()
     if stock_per_product:
         formatted_stock_per_product = [{"product_name":name,"stock_count":stock_count} for name,stock_count in stock_per_product]
-        return formatted_stock_per_product
+        depleting = [item for item in formatted_stock_per_product if item['stock_count']<20]
+        return {"stock_per_product":formatted_stock_per_product,"depleting_products":len(depleting)}
+    
     return None
 
 
@@ -249,7 +270,7 @@ def get_profit_time_data(user, db: Session):
     formatted_profit = [{"date": dates, "profit": profit} for dates, profit in all_profit] if all_profit else []
 
     today_date = date.today()
-    today_profit = next((item['profit'] for item in formatted_profit if item['date'] == today_date), None)  
+    today_profit = next((item['profit'] for item in formatted_profit if item['date'] == today_date), 0)  
 
     current_month = date.today().month
     current_year = date.today().year

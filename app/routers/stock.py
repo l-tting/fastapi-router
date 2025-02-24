@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-import models, schemas,services
-from database import get_db
-from auth import get_current_user
-from utils import admin_required
-from services import get_depleting_products
+from app import models, schemas,services
+from app.database import get_db
+from app.auth import get_current_user
+from app.utils import admin_required
+from app.services import get_depleting_products
 
 router = APIRouter()
 
@@ -27,7 +27,7 @@ def add_stock(stock: schemas.Stock, user=Depends(get_current_user), db: Session 
 
 @router.get('/',status_code=status.HTTP_200_OK)
 def get_stock(user=Depends(get_current_user),db:Session=Depends(get_db)):
-    my_stock = db.query(models.Stock).filter(models.Stock.company_id==user.company_id).all()
+    my_stock = services.get_all_stock(user,db)
     if my_stock is None:
          raise HTTPException(status_code=404, detail="Stock not found")
     

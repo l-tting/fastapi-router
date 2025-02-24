@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-import models, schemas
-from database import get_db
-from auth import get_current_user
-from utils import admin_required
+from app import models, schemas
+from app.database import get_db
+from app.auth import get_current_user
+# from utils import admin_required
 
 
 router = APIRouter()
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-@admin_required
+# @admin_required
 def register_vendor(vendor: schemas.VendorCreate, user=Depends(get_current_user), db: Session = Depends(get_db)):
     existing_vendor = db.query(models.Vendor).filter(models.Vendor.email == vendor.email).first()
     if existing_vendor:
