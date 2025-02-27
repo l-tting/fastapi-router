@@ -15,6 +15,7 @@ class Company(Base):
     product = relationship('Product',back_populates='company')
     sales = relationship('Sale',back_populates='company')
     stock = relationship("Stock",back_populates='company')
+    stock_tracker = relationship("StockTracker",back_populates='company')
 
 
 class User(Base):
@@ -39,18 +40,27 @@ class Product(Base):
     sales = relationship("Sale", back_populates='product')
     company = relationship("Company",back_populates='product')
     stock = relationship("Stock",back_populates='product')
+    stock_tracker = relationship("StockTracker",back_populates='product')
     
 class Stock(Base):
     __tablename__ = 'stock'
     id = Column(Integer,primary_key=True)
     company_id = Column(Integer,ForeignKey('companies.id'),nullable=False)
     product_id = Column(Integer,ForeignKey('products.id'),nullable=False)
-    stock_count = Column(Integer,nullable=False)
-    created_at = Column(DateTime,default=func.now())
+    stock_count = Column(Integer,nullable=False,default=0)
     product = relationship("Product",back_populates='stock')
     company = relationship("Company",back_populates='stock')
     
-
+class StockTracker(Base):
+    __tablename__ = 'stock_tracker'
+    id = Column(Integer,primary_key=True)
+    company_id = Column(Integer,ForeignKey('companies.id'),nullable=False)
+    product_id = Column(Integer,ForeignKey('products.id'),nullable=False)
+    stock_added = Column(Integer,nullable=False)
+    created_at = Column(DateTime,default=func.now())
+    product = relationship("Product",back_populates='stock_tracker')
+    company = relationship("Company",back_populates='stock_tracker')
+    
 
 class Sale(Base):
     __tablename__ = 'sales'
